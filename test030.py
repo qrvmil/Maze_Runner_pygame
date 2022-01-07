@@ -14,6 +14,56 @@ FIRST = [(345, 337), (355, 337), (363, 345), (363, 355), (355, 363), (345, 363),
 SECOND = 342
 
 
+class Tunnel:
+    def __init__(self, screen):
+        self.board = [[0] * 8 for _ in range(15)]
+        self.sprite_g = pygame.sprite.Group()
+        self.screen = screen
+
+    def add_enem(self):
+        for i in range(8):
+            if random.randint(1, 10) > 7:
+                self.board[0][i] = Square(0, i, "red")
+        self.draw_sprites()
+
+    def transpose(self, enemy, i):
+        enemy.sprite.rect.w *= (i * 1.2)
+        enemy.sprite.rect.h *= (i * 1.2)
+
+    def place(self, enemy, i, j):
+        enemy.sprite.rect.x *= (i * 1.2)
+        pass
+
+        # enemy.sprite
+
+    def draw_sprites(self):
+        self.sprite_g.empty()
+        for i in range(15):
+            for j in range(8):
+                if self.board[i][j] != 0:
+                    self.place(self.board[i][j], i, j)
+                    self.transpose(self.board[i][j], i, j)
+                    self.sprite_g.add(self.board[i][j])
+        self.sprite_g.draw(self.screen)
+
+
+class Enemies:
+    def __init(self, x, y, color):
+        self.x = x
+        self.y = y
+        self.color = color
+
+
+class Square(Enemies):
+    def __init__(self, x, y, color):
+        super().__init__(self, x, y, color)
+        self.image = pygame.image.load("tank.png")
+        self.image = pygame.image.transform(self.image, (30, 30))
+        self.sprite = pygame.sprite.Sprite()
+        self.sprite.image = self.image
+        self.sprite.rect = self.sprite.image.get_rect()
+
+
 class Draw:
 
     def __init__(self, screen):
@@ -44,9 +94,15 @@ class Draw:
 
         self.first = [[345, 336], [356, 336], [365, 345], [365, 356], [356, 365], [345, 365], [336, 356], [336, 345]]
 
+        self.lines = [[(41, -491), (345, 336)], [(667, -491), (356, 336)], [(1199, 41), (365, 345)],
+                      [(1199, 667), (365, 356)], [(667, 1199), (356, 365)], [(41, 1199), (345, 365)],
+                      [(-491, 667), (336, 356)], [(-491, 41), (336, 345)]]
+
         for i in range(15):
             pygame.draw.polygon(self.screen, COLOR, self.koord[i], 1)
 
+        for i in range(8):
+            pygame.draw.line(self.screen, COLOR, self.lines[i][0], self.lines[i][1])
 
 
     def grow(self):
@@ -55,11 +111,17 @@ class Draw:
 
         if self.koord[0][0][0] <= SECOND:
             self.koord = [self.first] + self.koord[:-1]
-            self.first = [[345, 336], [356, 336], [365, 345], [365, 356], [356, 365], [345, 365], [336, 356], [336, 345]]
-
+            self.first = [[345, 336], [356, 336], [365, 345], [365, 356], [356, 365], [345, 365], [336, 356],
+                          [336, 345]]
 
         for i in range(15):
             pygame.draw.polygon(self.screen, COLOR, self.koord[i], 1)
+
+        for i in range(8):
+            self.lines[i] = self.koord[9][i], self.koord[0][i] # если подправить 9 на 8 линии быстрее выстраиваются
+
+        for i in range(8):
+            pygame.draw.line(self.screen, COLOR, self.lines[i][0], self.lines[i][1])
 
         for i in range(15):
             self.koord[i][0][0] -= k * cos(45)
@@ -86,22 +148,17 @@ class Draw:
             self.koord[i][7][0] -= k * sin(45)
             self.koord[i][7][1] -= k * cos(45)
 
-
             k += 0.5
 
 
-
-
 def start():
-
     pygame.init()
     pygame.display.set_caption('test 030')
     clock = pygame.time.Clock()
 
-
     screen = pygame.display.set_mode(size)
     fig = Draw(screen)
-
+    tunnel = Tunnel(screen)
 
     pygame.display.flip()
 
@@ -132,9 +189,19 @@ def start():
             # fig.step += 1
 
             fig.grow()
+            tunnel.draw_sprites()
 
             pygame.display.flip()
 
     pygame.quit()
 
 
+start()
+
+'''
+def rot_center(image, rect, angle):
+    """rotate an image while keeping its center"""
+    rot_image = pygame.transform.rotate(image, angle)
+    rot_rect = rot_image.get_rect(center=rect.center)
+    return rot_image,rot_rect
+    '''
